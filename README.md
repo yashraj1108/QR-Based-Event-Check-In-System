@@ -1,4 +1,4 @@
-# EventFlow — QR-Based Event Check-In System
+# QR-Based Event Check-In System
 
 A lightweight event management app where attendees register and receive a unique
 QR ticket, and organizers scan tickets at the door for real-time, duplicate-proof
