@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h2 class="section-title">Live event dashboard</h2>
+<p class="section-sub">Updates automatically every 3 seconds.</p>
+
+<div class="stat-grid">
+  <div class="card stat-card">
+    <div class="label">Registered</div>
+    <div class="value" id="s-total">0</div>
+  </div>
+  <div class="card stat-card">
+    <div class="label">Checked in</div>
+    <div class="value" id="s-checked">0</div>
+    <div class="progress-track"><div class="progress-fill" id="s-progress" style="width:0%"></div></div>
+  </div>
+  <div class="card stat-card">
+    <div class="label">Remaining</div>
+    <div class="value" id="s-remaining">0</div>
+  </div>
+</div>
+
+<h3 class="section-title">Live check-in feed</h3>
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Ticket type</th><th>Time</th></tr>
+    </thead>
+    <tbody id="feed-body">
+      <tr><td colspan="3" class="empty-state">No check-ins yet.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  async function refresh() {
+    const [stats, feed] = await Promise.all([
+      fetch("{{ url_for('api_stats') }}").then(r => r.json()),
+      fetch("{{ url_for('api_feed') }}").then(r => r.json()),
+    ]);
+
+    document.getElementById('s-total').textContent = stats.total;
+    document.getElementById('s-checked').textContent = stats.checked_in;
+    document.getElementById('s-remaining').textContent = stats.remaining;
+    document.getElementById('s-progress').style.width = stats.percent + '%';
+
+    const body = document.getElementById('feed-body');
+    if (feed.length === 0) {
+      body.innerHTML = '<tr><td colspan="3" class="empty-state">No check-ins yet.</td></tr>';
+      return;
+    }
+    body.innerHTML = feed.map(a => `
+      <tr>
+        <td>${a.name}</td>
+        <td><span class="badge badge-neutral">${a.ticket_type}</span></td>
+        <td>${a.checkin_time || ''}</td>
+      </tr>
+    `).join('');
+  }
+
+  refresh();
+  setInterval(refresh, 3000);
+</script>
+{% endblock %}

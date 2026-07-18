@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Your ticket{% endblock %}
+{% block content %}
+<div class="ticket-wrap">
+  <div class="ticket">
+    <div class="ticket-main">
+      <span class="event-tag">{{ event_name }}</span>
+      <h2>You're in, {{ attendee.name.split(' ')[0] }}.</h2>
+
+      <div class="ticket-row">
+        <div class="k">Attendee</div>
+        <div class="v">{{ attendee.name }}</div>
+      </div>
+      <div class="ticket-row">
+        <div class="k">Email</div>
+        <div class="v">{{ attendee.email }}</div>
+      </div>
+      <div class="ticket-row">
+        <div class="k">Ticket type</div>
+        <div class="v">
+          <span class="badge badge-neutral">{{ attendee.ticket_type }}</span>
+        </div>
+      </div>
+      <div class="ticket-row">
+        <div class="k">Status</div>
+        <div class="v">
+          {% if attendee.is_checked_in %}
+            <span class="badge badge-success">✓ Checked in</span>
+          {% else %}
+            <span class="badge badge-warning">Not checked in yet</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="ticket-row">
+        <div class="k">Ticket code</div>
+        <div class="ticket-code">{{ attendee.ticket_code }}</div>
+      </div>
+    </div>
+
+    <div class="ticket-stub">
+      <img src="{{ url_for('static', filename='qrcodes/' + attendee.ticket_code + '.png') }}" alt="QR ticket code">
+      <span class="hint">Present at the entrance to scan</span>
+    </div>
+  </div>
+</div>
+{% endblock %}

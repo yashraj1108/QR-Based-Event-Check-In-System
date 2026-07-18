@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Scan{% endblock %}
+{% block content %}
+<h2 class="section-title">Entry scanner</h2>
+<p class="section-sub">Point the camera at an attendee's QR ticket, or enter the code manually.</p>
+
+<div class="scan-grid">
+  <div>
+    <div id="reader"></div>
+    <div class="manual-entry">
+      <input type="text" id="manual-code" placeholder="Paste ticket code…">
+      <button class="btn btn-ghost" id="manual-submit">Verify</button>
+    </div>
+  </div>
+
+  <div class="card scan-result" id="result-card">
+    <div class="empty-state" id="result-empty">Waiting for a scan…</div>
+    <div id="result-body" style="display:none;">
+      <span class="badge" id="result-badge"></span>
+      <div class="status-line" id="result-title" style="margin-top:12px;"></div>
+      <p id="result-message" style="color: var(--text-muted); margin: 4px 0 0;"></p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+  const resultEmpty = document.getElementById('result-empty');
+  const resultBody = document.getElementById('result-body');
+  const resultBadge = document.getElementById('result-badge');
+  const resultTitle = document.getElementById('result-title');
+  const resultMessage = document.getElementById('result-message');
+
+  let lastCode = null;
+  let lastAt = 0;
+
+  function renderResult(status, title, message) {
+    resultEmpty.style.display = 'none';
+    resultBody.style.display = 'block';
+
+    const map = {
+      success: ['badge-success', '✓ Verified'],
+      duplicate: ['badge-warning', '⚠ Already used'],
+      invalid: ['badge-danger', '✕ Invalid ticket'],
+      error: ['badge-danger', '✕ Error'],
+    };
+    const [cls, label] = map[status] || map.error;
+
+    resultBadge.className = 'badge ' + cls;
+    resultBadge.textContent = label;
+    resultTitle.textContent = title;
+    resultMessage.textContent = message;
+  }
+
+  async function submitCode(code) {
+    // Debounce identical scans fired repeatedly by the camera loop
+    const now = Date.now();
+    if (code === lastCode && now - lastAt < 3000) return;
+    lastCode = code;
+    lastAt = now;
+
+    try {
+      const res = await fetch("{{ url_for('api_checkin') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      const title = data.attendee ? data.attendee.name : "Unknown ticket";
+      renderResult(data.status, title, data.message);
+    } catch (err) {
+      renderResult('error', 'Network error', 'Could not reach the server.');
+    }
+  }
+
+  // Camera scanner
+  const qrScanner = new Html5Qrcode("reader");
+  Html5Qrcode.getCameras().then(cameras => {
+    if (cameras && cameras.length) {
+      qrScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        (decodedText) => submitCode(decodedText),
+        () => {} // ignore per-frame scan failures
+      );
+    } else {
+      document.getElementById('reader').innerHTML =
+        '<div class="empty-state">No camera found — use manual entry.</div>';
+    }
+  }).catch(() => {
+    document.getElementById('reader').innerHTML =
+      '<div class="empty-state">Camera access denied — use manual entry.</div>';
+  });
+
+  // Manual fallback
+  document.getElementById('manual-submit').addEventListener('click', () => {
+    const val = document.getElementById('manual-code').value.trim();
+    if (val) submitCode(val);
+  });
+  document.getElementById('manual-code').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('manual-submit').click();
+  });
+</script>
+{% endblock %}

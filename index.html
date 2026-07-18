@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="hero">
+  <div>
+    <span class="hero-eyebrow">● {{ event_name }} · Live registration</span>
+    <h1>Get your ticket.<br>Skip the front desk.</h1>
+    <p class="lede">
+      Register once and we'll generate a unique QR ticket instantly. Show it at the
+      door and organizers verify your entry in under a second — no printed lists,
+      no manual lookups.
+    </p>
+    <div class="hero-stats">
+      <div><strong id="stat-total">—</strong><span>Registered</span></div>
+      <div><strong id="stat-checked">—</strong><span>Checked in</span></div>
+    </div>
+  </div>
+
+  <div class="card form-card">
+    <h2>Reserve your spot</h2>
+    <p class="sub">Takes about 15 seconds.</p>
+    <form action="{{ url_for('register') }}" method="POST">
+      <div class="field">
+        <label for="name">Full name</label>
+        <input type="text" id="name" name="name" placeholder="Emily Reyes" required>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="emily@company.com" required>
+      </div>
+      <div class="field">
+        <label for="ticket_type">Ticket type</label>
+        <select id="ticket_type" name="ticket_type">
+          <option value="General">General</option>
+          <option value="VIP">VIP</option>
+          <option value="Speaker">Speaker</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Generate my QR ticket</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  fetch("{{ url_for('api_stats') }}")
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('stat-total').textContent = d.total;
+      document.getElementById('stat-checked').textContent = d.checked_in;
+    });
+</script>
+{% endblock %}
