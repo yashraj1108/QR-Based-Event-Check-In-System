@@ -30,27 +30,6 @@ and a JSON API driving a live camera scanner and dashboard.
 | QR codes   | `qrcode` (generation) + `html5-qrcode` CDN (browser-side scanning) |
 | Frontend   | Server-rendered Jinja templates, vanilla JS, no build step |
 
-## Project structure
-
-```
-qr-event-checkin/
-├── app.py                 # Flask app factory + all routes
-├── config.py               # App configuration
-├── models.py                # SQLAlchemy Attendee model
-├── qr_utils.py               # QR code generation helpers
-├── requirements.txt
-├── static/
-│   ├── css/style.css        # Design system
-│   └── qrcodes/              # Generated QR PNGs (gitignored)
-└── templates/
-    ├── base.html
-    ├── index.html            # Registration
-    ├── ticket.html            # QR ticket display
-    ├── scan.html               # Organizer scanner
-    ├── dashboard.html           # Live stats
-    └── attendees.html            # Full roster
-```
-
 ## Getting started
 
 ```bash
@@ -112,4 +91,4 @@ Environment variables (all optional, sensible defaults are used otherwise):
 
 ## License
 
-MIT — use it, fork it, adapt it for your own events.
+MIT - use it, fork it, adapt it for your own events.
